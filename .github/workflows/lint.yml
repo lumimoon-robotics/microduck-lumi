@@ -1,0 +1,45 @@
+name: 链接和 Markdown 检查
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  markdown-lint:
+    name: Markdown 链接与格式检查
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 设置 Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 检查 Markdown 链接
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: --max-concurrency 8 --timeout 30s --accept '200,202,204,301,302' --exclude-path docs/ ./**/*.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 检查淘宝链接追踪参数
+        run: |
+          # 校验淘宝链接已剥掉所有 spm / mi_id / xxc / track 等追踪参数
+          if grep -rE 'taobao\.com/[^"'\'']*?(spm|mi_id|xxc|track|ua)=' --include='*.md' .; then
+            echo "::error::检测到未剥干净的淘宝链接追踪参数"
+            exit 1
+          fi
+          echo "✅ 所有淘宝链接已剥干净"
+
+      - name: 检查 LICENSE / NOTICE 存在
+        run: |
+          test -f LICENSE || (echo "::error::LICENSE 不存在" && exit 1)
+          test -f NOTICE.md || (echo "::error::NOTICE.md 不存在" && exit 1)
+          echo "✅ LICENSE / NOTICE 存在"

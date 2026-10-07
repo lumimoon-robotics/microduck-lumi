@@ -1,0 +1,23 @@
+# 维护者
+# 任何对所列路径的 PR 必须经过所列所有者的审核
+
+# 全局默认
+*       @AiNewView
+
+# 训练相关
+/docs/训练/    @AiNewView
+/docs/调试/策略部署.md    @AiNewView
+
+# 采购 / 硬件相关
+/docs/采购/    @AiNewView
+/docs/装配/    @AiNewView
+/hardware/    @AiNewView
+
+# 安全相关
+/docs/调试/安全与故障保护.md    @AiNewView
+
+# 项目元信息
+/README.md    @AiNewView
+/LICENSE    @AiNewView
+/NOTICE.md    @AiNewView
+/CHANGELOG.md    @AiNewView

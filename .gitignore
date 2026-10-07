@@ -1,0 +1,87 @@
+# Build artifacts
+target/
+build/
+dist/
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.dylib
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+env/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Rust
+**/*.rs.bk
+Cargo.lock.bak
+
+# ONNX / 模型
+*.onnx
+*.pt
+*.pth
+*.bin
+*.safetensors
+
+# 训练产物
+logs/
+checkpoints/
+wandb/
+
+# 3D 打印
+*.gcode
+*.3mf.bak
+
+# 大文件 / 二进制
+*.stl
+*.step
+*.stp
+*.iges
+*.3mf
+*.blend
+*.fcstd
+*.f3d
+*.zip
+*.tar.gz
+
+# 文档构建
+book/
+_site/
+.docusaurus/
+node_modules/
+.cache/
+public/
+
+# 环境
+.env
+.env.local
+*.local
+secrets.yaml
+
+# 日志
+*.log
+
+# 临时
+tmp/
+temp/
+.cache/
