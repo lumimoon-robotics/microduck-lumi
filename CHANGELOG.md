@@ -33,3 +33,6 @@
 
 [Unreleased]: https://github.com/lumimoon-robotics/microduck-lumi/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/lumimoon-robotics/microduck-lumi/releases/tag/v0.1.0
+
+### 发布说明
+首个公开版本（v0.1.0）已发布。详细发布说明见 [GitHub Release](https://github.com/lumimoon-robotics/microduck-lumi/releases/tag/v0.1.0)。
