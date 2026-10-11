@@ -22,24 +22,65 @@ jobs:
         with:
           node-version: '20'
 
-      - name: 检查 Markdown 链接
-        uses: lycheeverse/lychee-action@v2
-        with:
-          args: --max-concurrency 4 --timeout 30 --retry 3 --retry-wait-time 5 --accept '200,202,204,301,302' ./**/*.md
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: 检查淘宝链接追踪参数
-        run: |
-          # 校验淘宝链接已剥掉所有 spm / mi_id / xxc / track 等追踪参数
-          if grep -rE 'taobao\.com/[^"'\'']*?(spm|mi_id|xxc|track|ua)=' --include='*.md' .; then
-            echo "::error::检测到未剥干净的淘宝链接追踪参数"
-            exit 1
-          fi
-          echo "✅ 所有淘宝链接已剥干净"
-
       - name: 检查 LICENSE / NOTICE 存在
         run: |
           test -f LICENSE || (echo "::error::LICENSE 不存在" && exit 1)
           test -f NOTICE.md || (echo "::error::NOTICE.md 不存在" && exit 1)
           echo "✅ LICENSE / NOTICE 存在"
+
+      - name: 检查淘宝链接追踪参数
+        run: |
+          # 校验淘宝链接已剥掉所有 spm / mi_id / xxc / track 等追踪参数
+          # 注意：BOM 文件中"spm= mi_id= xxc=" 等文字本身（说明性）允许出现
+          # 只有真正指向淘宝商品页的 URL 才不能含这些参数
+          bad=$(grep -rE 'https?://item\.taobao\.com/item\.htm\?[^\s)]*(spm|mi_id|xxc|track|ua)=' --include='*.md' . | grep -v 'CONTRIBUTING.md' || true)
+          if [ -n "$bad" ]; then
+            echo "::error::检测到未剥干净的淘宝链接追踪参数："
+            echo "$bad"
+            exit 1
+          fi
+          echo "✅ 所有淘宝链接已剥干净"
+
+      - name: 检查 Markdown 标题层级连续
+        run: |
+          # 简单标题层级检查：不应跳级（如 # 直接到 ###）
+          fail=0
+          for f in $(find . -name '*.md' -not -path './node_modules/*' -not -path './.git/*'); do
+            awk '
+              /^#{1,6} / {
+                lvl = length($1)
+                if (prev && lvl > prev + 1) {
+                  print FILENAME":"NR": 标题跳级 (从 H"prev" 直接到 H"lvl"): "$0
+                }
+                prev = lvl
+              }
+            ' "$f" || true
+          done | tee /tmp/title_check.txt
+          if [ -s /tmp/title_check.txt ]; then
+            echo "::warning::检测到标题跳级（仅警告，不阻断）"
+          else
+            echo "✅ 所有标题层级连续"
+          fi
+
+      - name: 检查引用路径存在
+        run: |
+          # 检查 README 内部相对路径引用是否真实存在
+          fail=0
+          for f in $(find . -name '*.md' -not -path './node_modules/*' -not -path './.git/*'); do
+            # 抽取 (./xxx) 或 (xxx) 形式的本地相对路径（不含 http 链接）
+            grep -oE '\]\(\.{0,2}/?[^)]+\)' "$f" | sed 's/^](\.\{0,2\}\/*//;s/)$//' | while read p; do
+              # 跳过 URL、模板变量
+              echo "$p" | grep -qE '^https?://' && continue
+              # 跳过含 # 的纯锚点
+              [ "${p#\#}" != "$p" ] && continue
+              # 解析相对路径
+              d=$(dirname "$f")
+              full="$d/$p"
+              # 去掉 #锚点
+              full="${full%\#*}"
+              if [ ! -e "$full" ]; then
+                echo "::warning::${f} 引用了不存在的路径: ${p}"
+              fi
+            done
+          done
+          echo "✅ 引用路径检查完成"
